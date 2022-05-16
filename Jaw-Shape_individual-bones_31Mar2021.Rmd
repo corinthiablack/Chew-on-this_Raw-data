@@ -1,0 +1,936 @@
+---
+title: "JawShape"
+author: "Cori"
+date: "5/22/2020"
+output: html_document
+---
+
+```{r Setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("geomorph")
+library(geomorph)
+library(Morpho)
+library(phytools)
+library(BiodiversityR)
+#if(!require(devtools)) install.packages("devtools")
+library(devtools)
+#install_github("TGuillerme/landvR")
+library(landvR)
+library("devtools")
+#install_github("JosephCrispell/basicPlotteR")
+library(basicPlotteR)
+#devtools::install_github("mlcollyer/RRPP", build_vignettes = TRUE,force = TRUE)
+```
+
+```{r Load color palette and classifier data}
+colblind_pal <- c("#000000", "#004949", "#009292", "#ff6db6", "#ffb677", "#490092", "#006ddb", "#b66dff", "#b6dbff", "#920000", "#924900", "#dbd100", "#24ff24", "#ffff6d", "#6db6ff")
+
+classifier=read.csv("All_classifiers.csv", header = T, row.names = 1)
+```
+
+Function to load landmark data from fcsv format
+```{r Set function to load landmark data}
+keep.coordinates.only = function (input) {
+  input = as.matrix(input [, 2:4])
+  return(input)
+}
+``` 
+
+#############################
+####    Premaxilla       ####
+#############################
+
+--- Traditional Landmarking ---
+
+```{r PM Traditional - Set directory}
+path.to.premaxilla.traditional = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/2_Traditional GM/Premaxilla_new/'
+f = dir (patt='fcsv', path = path.to.premaxilla.traditional)
+names=list.files(path.to.premaxilla.traditional)
+names=gsub("-.*","",names)
+names=as.list(names)
+```
+
+```{r PM Traditional - Create array for landmarks}
+PMtraditionalLMs = array (dim = c(6, 3, 30))
+```
+
+```{r PM Traditional - Load landmark data into array}
+for (i in 1:30) {
+    PMtraditionallandmark = read.csv (file = paste(path.to.premaxilla.traditional, f[i], sep = '/'), skip = 2, header = TRUE)
+    PMtraditionalLMs [,,i] = keep.coordinates.only(PMtraditionallandmark)
+    #print(f[i])
+}
+```
+
+```{r PM Traditional - Run GPA and PCA}
+PM.traditional.gpa = gpagen(PMtraditionalLMs, ProcD = TRUE)
+dimnames(PM.traditional.gpa$coords)[[3]]=names
+
+PM.traditional.pca=gm.prcomp(PM.traditional.gpa$coords)
+summary(PM.traditional.pca)
+```
+
+--- Auto3DGM ---
+```{r PM Auto3DGM - Set directory}
+path.to.premaxilla = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Landmarks/Automated/Premaxilla/'
+#path.to.premaxilla = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM copy/GPA/Premaxilla_new/'
+f = dir (patt='fcsv', path = path.to.premaxilla)
+names=list.files(path.to.premaxilla)
+names=gsub("-.*","",names)
+names=as.list(names)
+```
+
+```{r PM Auto3DGM - Create array for landmarks}
+PMLMs = array (dim = c(200, 3, 30))
+```
+
+```{r PM Auto3DGM - Load landmark data into array}
+for (i in 1:30) {
+    PMlandmark = read.csv (file = paste(path.to.premaxilla, f[i], sep = '/'), skip = 2, header = TRUE)
+    PMLMs [,,i] = keep.coordinates.only(PMlandmark)
+    #print(f[i])
+}
+```
+
+```{r PM Auto3DGM - Run GPA and PCA}
+PMgpa = gpagen(PMLMs, ProcD = TRUE)
+dimnames(PMgpa$coords)[[3]]=names
+
+PMpca=gm.prcomp(PMgpa$coords)
+summary(PMpca)
+```
+
+---Figure---
+```{r PM - PCA Figure}
+PMauto.label=subset(classifier, Species_PM != "NA")
+auto.col=colblind_pal
+names(auto.col)=levels(PMauto.label$Subfamily)
+auto.col=auto.col[match(PMauto.label$Subfamily,names(auto.col))]
+
+### Save figure comparing Traditional Landmarking and Auto3DGM ###
+pdf(file = "../2_Output/Premaxilla.pdf", width=10, height=5)
+par(mfrow=c(1,2))
+##Traditional Landmarks
+par(mar=c(5.1,2.1,2,1.75))
+plot(PM.traditional.pca,pch=21, bg=auto.col, cex=1.5, xlim = c(-.8,.5), ylim = c(-.25,.25), xlab = "PC1 (71.0% ± 18.8%)", ylab = "", yaxt="n")
+mtext("PC2 (12.8% ± 8.01%)", side = 2, line = 1)
+axis(4, las=1, labels = FALSE)
+addTextLabels(PM.traditional.pca$x[,1], PM.traditional.pca$x[,2], PMauto.label$Figure, col.label=auto.col)
+##Auto3DGM
+par(mar=c(5.1,1.75,2,2.1))
+plot(PMpca,pch=21, bg=auto.col, cex=1.5, xlim = c(-.3,.35), ylim = c(-.25,.25), xlab = "PC1 (28.0% ± 14.4%)", ylab = "", yaxt="n")
+mtext("PC2 (17.8% ± 11.4%)", side = 4, line = 1)
+axis(2, las=1)
+axis(1)
+addTextLabels(PMpca$x[,1], PMpca$x[,2], PMauto.label$Figure, col.label=auto.col)
+dev.off()
+```
+
+Warp mesh to extremes
+```{r PM - Warp meshes}
+###Auto3DGM###
+#findMeanSpec(PMgpa$coords)
+#PMmesh=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/2Premaxilla/Baryancistrus_xanthellus-Premaxilla_L.ply")
+#PMmesh$material$color = "light grey"
+
+#PMmed.shape=mshape(PMgpa$coords)
+#PMmed.mesh=warpRefMesh(mesh = PMmesh, mesh.coord = PMgpa$coords[,,"Baryancistrus_xanthellus"], PMmed.shape)
+
+#plotTangentSpace(PMgpa$coords, mesh = PMmed.mesh)
+#rgl.postscript("../2_Output/Auto.PC1.top.pdf", fmt="pdf") #position figure to capture photo
+
+#plotTangentSpace(PMgpa$coords, mesh = PMmed.mesh, axis1 = 2)
+#rgl.postscript("../2_Output/Auto.PC2.top.pdf", fmt="pdf") #position figure to capture photo
+
+#pc1.min=warpRefMesh(mesh = PMmed.mesh, mesh.coord = PMmed.shape, PMpca$pc.shapes$PC1min)
+#pc1.max=warpRefMesh(mesh = PMmed.mesh, mesh.coord = PMmed.shape, PMpca$pc.shapes$PC1max)
+
+#plot3d(pc1.min)
+#points3d(PMpca$pc.shapes$PC1min)
+
+###Traditional###
+#findMeanSpec(PM.traditional.gpa$coords)
+#PMmesh.trad=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/2Premaxilla/Gymnotocinclus_anosteos-Premax_L.ply")
+#PMmesh.trad$material$color = "light grey"
+
+#PMmed.trad.shape=mshape(PM.traditional.gpa$coords)
+#PMmed.trad.mesh=warpRefMesh(mesh = PMmesh.trad, mesh.coord = PM.traditional.gpa$coords[,,"Gymnotocinclus_anosteos_Premaxilla_L.fcsv"], PMmed.trad.shape)
+  
+
+#plotTangentSpace(PM.traditional.gpa$coords, mesh = PMmed.trad.mesh)
+#rgl.postscript("../2_Output/Trad.PC1.side.pdf", fmt="pdf")
+
+#plotTangentSpace(PM.traditional.gpa$coords, mesh = PMmed.trad.mesh, axis1 = 2)
+#rgl.postscript("../2_Output/Trad.PC2.side.pdf", fmt="pdf")
+```
+
+
+############################
+####      Maxilla       ####
+############################
+
+--- Traditional Landmarking ---
+
+```{r M Traditional - Set directory}
+path.to.maxilla.traditional = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/2_Traditional GM/Maxilla_appended/'
+f = dir (patt='fcsv', path = path.to.maxilla.traditional)
+names=list.files(path.to.maxilla.traditional)
+names=gsub("-.*","",names)
+names=as.list(names)
+```
+
+```{r M Traditional - Create array for landmarks}
+MLMs.traditional = array (dim = c(24, 3, 36))
+```
+
+```{r M Traditional - Load landmark data into array}
+for (i in 1:36) {
+    Mlandmark.traditional = read.csv (file = paste(path.to.maxilla.traditional, f[i], sep = '/'), skip = 2, header = TRUE)
+    MLMs.traditional [,,i] = keep.coordinates.only(Mlandmark.traditional)
+    #print(f[i])
+}
+```
+
+sliders
+```{r M Traditional - Define sliding landmarks}
+sliders=define.sliders(c(5:24), 1)
+```
+
+```{r M Traditional - Run GPA and PCA}
+Mgpa.traditional = gpagen(MLMs.traditional, curves = sliders)
+dimnames(Mgpa.traditional$coords)[[3]]=names
+
+Mpca.traditional=gm.prcomp(Mgpa.traditional$coords)
+summary(Mpca.traditional)
+```
+
+--- Auto3DGM ---
+```{r M Auto3DGM - Set directory}
+path.to.maxilla = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Landmarks/Automated/Maxilla/'
+f = dir (patt='fcsv', path = path.to.maxilla)
+names=list.files(path.to.maxilla)
+names=gsub("-.*","",names)
+names=as.list(names)
+```
+
+```{r M Auto3DGM - Create array for landmarks}
+MLMs = array (dim = c(100, 3, 36))
+```
+
+```{r M Auto3DGM - Load landmark data into array}
+for (i in 1:36) {
+    Mlandmark = read.csv (file = paste(path.to.maxilla, f[i], sep = '/'), skip = 2, header = TRUE)
+    MLMs [,,i] = keep.coordinates.only(Mlandmark)
+    #print(f[i])
+}
+```
+
+```{r M Auto3DGM - Run GPA and PCA}
+Mgpa = gpagen(MLMs)
+dimnames(Mgpa$coords)[[3]]=names
+Mpca=gm.prcomp(Mgpa$coords)
+
+summary(Mpca)
+```
+
+---Figure---
+```{r M - PCA Figure}
+Mauto.label=subset(classifier, Species_LJ.M != "NA")
+Mauto.col=colblind_pal
+names(Mauto.col)=levels(Mauto.label$Subfamily)
+Mauto.col=Mauto.col[match(Mauto.label$Subfamily,names(Mauto.col))]
+
+pdf(file = "../2_Output/Maxilla.pdf", width=10, height=5)
+par(mfrow=c(1,2))
+##Traditional Landmarks
+par(mar=c(5.1,2.1,2,1.75))
+plot(Mpca.traditional,pch=21, bg=Mauto.col, cex=1.5, xlab = "PC1 (32.4% ± 6.9%)", ylab = "", yaxt="n", 
+     xlim = c(-.2,.2), ylim = c(-.25,.25))
+mtext("PC2 (25.9% ± 6.2%)", side = 2, line = 1)
+addTextLabels(Mpca.traditional$x[,1], Mpca.traditional$x[,2], Mauto.label$Figure, col.label=Mauto.col)
+axis(4, las=1, labels = FALSE)
+##Auto3DGM
+par(mar=c(5.1,1.75,2,2.1))
+plot(Mpca,pch=21, bg=Mauto.col, cex=1.5, xlim = c(-.45,.25), ylim = c(-.25,.25), xlab = "PC1 (33.6% ± 12.8%)", ylab = "", yaxt="n")
+mtext("PC2 (14.8% ± 8.4%)", side = 4, line = 1)
+axis(2, las=1)
+axis(1)
+addTextLabels(Mpca$x[,1], Mpca$x[,2], Mauto.label$Figure, col.label=Mauto.col)
+dev.off()
+```
+
+Warp mesh to extremes
+```{r M - Warp meshes}
+#findMeanSpec(Mgpa$coords)
+#Mmesh=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/1Maxilla/Pseudolithoxus_tigris-Maxilla_L.ply")
+#Mmesh$material$color = "light grey"
+
+#Mmed.shape=mshape(Mgpa$coords)
+#Mmed.mesh=warpRefMesh(Mmesh, Mgpa$coords[,,"Pseudolithoxus_tigris"], Mmed.shape)
+
+#plotTangentSpace(Mgpa$coords, mesh = Mmed.mesh)
+#rgl.postscript("../2_Output/Auto.PC1.front.pdf", fmt="pdf")
+
+#plotTangentSpace(PMgpa$coords, mesh = Mmed.mesh, axis1 = 2)
+#rgl.postscript("../2_Output/Auto.PC2.front.pdf", fmt="pdf")
+
+
+###Traditional###
+#findMeanSpec(Mgpa.traditional$coords)
+#Mmesh.trad=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/1Maxilla/Cordylancistrus_torbesensis-Maxilla_L.ply")
+#Mmesh.trad$material$color = "light grey"
+
+#Mmed.trad.shape=mshape(Mgpa.traditional$coords)
+#Mmed.trad.mesh=warpRefMesh(Mmesh.trad, #Mgpa.traditional$coords[,,"Cordylancistrus_torbesensis_Maxilla_L.fcsv"], Mmed.trad.shape)
+
+
+#plotTangentSpace(Mgpa.traditional$coords, mesh = Mmed.trad.mesh)
+#rgl.postscript("../2_Output/Traditional.PC1.front.pdf", fmt="pdf")
+
+#plotTangentSpace(PM.traditional.gpa$coords, mesh = Mmed.trad.mesh, axis1 = 2)
+#rgl.postscript("../2_Output/Traditional.PC2.front.pdf", fmt="pdf")
+```
+
+###########################
+###      Lower Jaw      ###
+###########################
+
+--- Traditional Landmarking ---
+
+```{r LJ Traditional - Set directory}
+path.to.lowerjaw.traditional = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/2_Traditional GM/LowerJaw/'
+f = dir (patt='fcsv', path = path.to.lowerjaw.traditional)
+names=list.files(path.to.lowerjaw.traditional)
+names=gsub("-.*","",names)
+names=as.list(names)
+```
+
+```{r LJ Traditional - Create array for landmarks}
+LJtraditionalLMs = array (dim = c(14, 3, 36))
+```
+
+```{r LJ Traditional - Load landmark data into array}
+for (i in 1:36) {
+    LJtraditionallandmark = read.csv (file = paste(path.to.lowerjaw.traditional, f[i], sep = '/'), skip = 2, header = TRUE)
+    LJtraditionalLMs [,,i] = keep.coordinates.only(LJtraditionallandmark)
+    #print(f[i])
+}
+```
+
+```{r LJ Traditional - Run GPA and PCA}
+LJ.traditional.gpa = gpagen(LJtraditionalLMs, ProcD = TRUE)
+dimnames(LJ.traditional.gpa$coords)[[3]]=names
+LJ.traditional.pca=gm.prcomp(LJ.traditional.gpa$coords)
+
+summary(LJ.traditional.pca)
+```
+
+--- Auto3DGM ---
+```{r LJ Auto3DGM - Set directory}
+path.to.lowerjaw = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Landmarks/Automated/LowerJaw2/'
+f = dir (patt='fcsv', path = path.to.lowerjaw)
+names=list.files(path.to.lowerjaw)
+names=gsub("-.*","",names)
+names=as.list(names)
+```
+
+```{r LJ Auto3DGM - Create array for landmarks}
+LJLMs = array (dim = c(300, 3, 36))
+```
+
+```{r LJ Auto3DGM - Load landmark data into array}
+for (i in 1:36) {
+    LJlandmark = read.csv (file = paste(path.to.lowerjaw, f[i], sep = '/'), skip = 2, header = TRUE)
+    LJLMs [,,i] = keep.coordinates.only(LJlandmark)
+    #print(f[i])
+}
+```
+
+```{r LJ Auto3DGM - Run GPA and PCA}
+LJgpa = gpagen(LJLMs, ProcD = TRUE)
+dimnames(LJgpa$coords)[[3]]=names
+LJpca=gm.prcomp(LJgpa$coords)
+
+summary(LJpca)
+```
+
+---Figure---
+```{r LJ - PCA Figure}
+LJauto.label=subset(classifier, Species_LJ.M != "NA")
+auto.col=colblind_pal
+names(auto.col)=levels(LJauto.label$Subfamily)
+auto.col=auto.col[match(LJauto.label$Subfamily,names(auto.col))]
+
+### Save figure comparing Traditional Landmarking and Auto3DGM ###
+pdf(file = "../2_Output/LowerJaw.pdf", width=10, height=5)
+par(mfrow=c(1,2))
+##Traditional Landmarks
+par(mar=c(5.1,2.1,2,1.75))
+plot(LJ.traditional.pca,pch=21, bg=auto.col, cex=1.5, xlim = c(-0.55, 0.5), ylim = c(-.35,.30), xlab = "PC1 (48.3% ± 19.5%)", ylab = "", yaxt="n")
+mtext("PC2 (14.0% ± 10.5%)", side = 2, line = 1)
+axis(4, las=1, labels = FALSE)
+addTextLabels(LJ.traditional.pca$x[,1], LJ.traditional.pca$x[,2], LJauto.label$Figure, col.label=auto.col)
+##Auto3DGM
+par(mar=c(5.1,1.75,2,2.1))
+plot(LJpca,pch=21, bg=auto.col, cex=1.5, xlim = c(-0.25, 0.45), ylim = c(-0.35, 0.3), xlab = "PC1 (38.2% ± 17.9%)", ylab = "", yaxt="n")
+mtext("PC2 (19.9% ± 12.9%)", side = 4, line = 1)
+axis(2, las=1)
+axis(1)
+addTextLabels(LJpca$x[,1], LJpca$x[,2], LJauto.label$Figure, col.label=auto.col)
+dev.off()
+```
+
+Warp mesh to extremes
+```{r LJ - Warp meshes}
+#findMeanSpec(LJgpa$coords)
+#mesh=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/3LowerJaw/Oxyropsis_wrightiana-LowerJaw_L.ply")
+#mesh$material$color = "light grey"
+
+#med.shape=mshape(LJgpa$coords)
+#med.mesh=warpRefMesh(mesh = mesh, mesh.coord = LJgpa$coords[,,"Oxyropsis_wrightiana"], med.shape)
+
+#plotTangentSpace(LJgpa$coords, mesh = med.mesh)
+#rgl.postscript("../2_Output/Auto.PC1.joint.pdf", fmt="pdf")
+
+#plotTangentSpace(LJgpa$coords, mesh = med.mesh, axis1 = 2)
+#rgl.postscript("../2_Output/Auto.PC2.joint.pdf", fmt="pdf")
+
+
+###Traditional###
+#findMeanSpec(LJ.traditional.gpa$coords)
+#mesh.trad=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/3LowerJaw/Oxyropsis_wrightiana-LowerJaw_L.ply")
+#mesh.trad$material$color = "light grey"
+
+#med.shape=mshape(LJ.traditional.gpa$coords)
+#med.mesh=warpRefMesh(mesh = mesh.trad, mesh.coord = LJ.traditional.gpa$coords[,,"Oxyropsis_wrightiana_LowerJaw_L.fcsv"], med.shape)
+
+#plotTangentSpace(LJ.traditional.gpa$coords, mesh = med.mesh)
+#rgl.postscript("../2_Output/Traditional.PC1.joint.pdf", fmt="pdf")
+
+#plotTangentSpace(LJ.traditional.gpa$coords, mesh = med.mesh, axis1 = 2)
+#rgl.postscript("../2_Output/Traditional.PC2.joint.pdf", fmt="pdf")
+```
+
+###########################
+###  Phylomorphospace   ###
+###########################
+
+```{r Phylogeny}
+#Lujan et al 2015 phylogeny
+lujan=read.tree(file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Lujan 2015_Tree.tre")
+
+#Roxo et al. 2019 phylogeny
+roxo=read.tree(file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Roxo 2019_TimeTree.tre")
+```
+
+```{r Prepare Phylomorphospace Premaxilla - Roxo}
+#Trim phylogeny to match Lower Jaw
+PMspecies=unique(as.factor(classifier$Species_PM))
+PMspecies=na.omit(PMspecies)
+trimmed.roxo=drop.tip(roxo,roxo$tip.label[-na.omit(match(PMspecies, roxo$tip.label))]) #to plot use 'plot(trimmed.lujan)'
+
+#Traditional - Lower Jaw
+  #Average landmarks
+  PMtrad.classifiers=subset(classifier, Species_PM != "NA")
+  OG.PMtradcoord=two.d.array(PM.traditional.gpa$coords)
+  PMtrad.coord=aggregate(OG.PMtradcoord~PMtrad.classifiers$Species_PM, FUN = mean)
+  PMtrad.coord=data.frame(PMtrad.coord, row.names = 1)
+
+  #Trim species procrusties landmarks to match phylogeny
+  include=trimmed.roxo$tip.label
+  PMtrad.coord=subset(PMtrad.coord, rownames(PMtrad.coord) %in% include)
+  PMtrad.coord=PMtrad.coord[trimmed.roxo$tip.label,] #Order landmarks - needed for labels and colors to be correct
+  
+  pmphyl=row.names(PMtrad.coord)
+  trimmed.roxo.PM=drop.tip(roxo,roxo$tip.label[-na.omit(match(pmphyl, roxo$tip.label))]) #to plot use 'plot(trimmed.lujan)'
+  
+  #Find distinct classifiers and trim/order to match phylogeny
+  row.names(classifier)=classifier$Species_LJ.M
+  phylo.PM.classifiers=subset(classifier, rownames(classifier) %in% include)
+  phylo.PM.classifiers=phylo.PM.classifiers[trimmed.roxo.PM$tip.label,]
+  
+  #Set color for Phylomorphospace
+  phylo.PM.col=as.character(phylo.PM.classifiers$Color)
+  names(phylo.PM.col)=phylo.PM.classifiers$Subfamily
+
+  PMtrad.coord3d=arrayspecs(PMtrad.coord,6,3)
+  PCAPM.trad=gm.prcomp(PMtrad.coord3d, phy=trimmed.roxo.PM,align.to.phy=F)
+
+#Auto - Lower Jaw
+    #Average landmarks
+  PMauto.classifiers=subset(classifier, Species_PM != "NA")
+  OG.PMautocoord=two.d.array(PMgpa$coords)
+  PMauto.coord=aggregate(OG.PMautocoord~PMauto.classifiers$Average, FUN = mean)
+  PMauto.coord=data.frame(PMauto.coord, row.names = 1)
+  
+  #Trim species procrusties landmarks to match phylogeny
+  PMauto.coord=subset(PMauto.coord, rownames(PMauto.coord) %in% include)
+  PMauto.coord=PMauto.coord[trimmed.roxo.PM$tip.label,] #Order landmarks - needed for labels and colors to be correct
+  
+
+  PMauto.coord3d=arrayspecs(PMauto.coord,200,3)
+  PCAPM.auto=gm.prcomp(PMauto.coord3d, phy=trimmed.roxo.PM, align.to.phy=F)
+  
+  #PCAPM.auto$x[,1]=PCAPM.auto$x[,1] * -1
+ # PCAPM.auto$x[,2]=PCAPM.auto$x[,2] * -1
+  #PCAPM.auto$anc.x[,1]=PCAPM.auto$anc.x[,1] * -1
+  #PCAPM.auto$anc.x[,2]=PCAPM.auto$anc.x[,2] * -1
+  
+  summary(PCAPM.trad)
+  summary(PCAPM.auto)
+```
+
+```{r Figure Phylomorphospace Premaxilla - Roxo}
+pdf(file = "../2_Output/Phylomorphospace-Premaxilla-Traditional_Roxo.pdf", width=6, height=5)
+    plot(PCAPM.trad, phylo = TRUE, pch=21, bg=phylo.PM.col, cex=2,
+       xlab = "PC1 (90.7%)", ylab = "PC2 (7.6%)", yaxt="n", ylim = c(-0.3,0.3), 
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+axis(4, las=1, labels = FALSE)
+    addTextLabels(PCAPM.trad$x[,1], PCAPM.trad$x[,2], phylo.PM.classifiers$Figure, col.label=phylo.PM.col)
+dev.off()
+
+    pdf(file = "../2_Output/Phylomorphospace-Premaxilla-Automated_Roxo.pdf", width=5, height=5)
+    plot(PCAPM.auto, phylo = TRUE, pch=21, bg=phylo.PM.col, cex=2,
+       xlab = "PC1 (48.8%)", ylab = "", ylim = c(-0.3,0.3), yaxt="n",
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))  
+mtext("PC2 (28.0%)", side = 4, line = 1)
+axis(2, las=1)
+axis(1)
+    addTextLabels(PCAPM.auto$x[,1], PCAPM.auto$x[,2], phylo.PM.classifiers$Figure, col.label=phylo.PM.col)
+dev.off()
+```
+
+```{r Prepare Phylomorphospace Maxilla - Roxo}
+#Trim phylogeny to match Lower Jaw
+species=unique(as.factor(classifier$Average))
+M.LJ.trimmed.roxo=drop.tip(roxo,roxo$tip.label[-na.omit(match(species, roxo$tip.label))]) #to plot use 'plot(trimmed.lujan)'
+
+#Traditional - Lower Jaw
+  #Average landmarks
+  OG.Mtradcoord=two.d.array(Mgpa.traditional$coords)
+  Mtrad.coord=aggregate(OG.Mtradcoord~classifier$Average, FUN = mean)
+  Mtrad.coord=data.frame(Mtrad.coord, row.names = 1)
+
+  #Trim species procrusties landmarks to match phylogeny
+  include=M.LJ.trimmed.roxo$tip.label
+  Mtrad.coord=subset(Mtrad.coord, rownames(Mtrad.coord) %in% include)
+  Mtrad.coord=Mtrad.coord[M.LJ.trimmed.roxo$tip.label,] #Order landmarks - needed for labels and colors to be correct
+
+  
+  #Find distinct classifiers and trim/order to match phylogeny
+  row.names(classifier)=classifier$Species_LJ.M
+  phylo.M.classifiers=subset(classifier, rownames(classifier) %in% include)
+  phylo.M.classifiers=phylo.M.classifiers[M.LJ.trimmed.roxo$tip.label,]
+  
+  #Set color for Phylomorphospace
+  phylo.M.col=as.character(phylo.M.classifiers$Color)
+  names(phylo.M.col)=phylo.M.classifiers$Subfamily
+
+
+#Auto - Lower Jaw
+    #Average landmarks
+  OG.Mautocoord=two.d.array(Mgpa$coords)
+  Mauto.coord=aggregate(OG.Mautocoord~classifier$Average, FUN = mean)
+  Mauto.coord=data.frame(Mauto.coord, row.names = 1)
+  
+  #Trim species procrusties landmarks to match phylogeny
+  Mauto.coord=subset(Mauto.coord, rownames(Mauto.coord) %in% include)
+  Mauto.coord=Mauto.coord[M.LJ.trimmed.roxo$tip.label,] #Order landmarks - needed for labels and colors to be correct
+  
+  Mtrad.coord3d=arrayspecs(Mtrad.coord,24,3)
+  PCAM.trad=gm.prcomp(Mtrad.coord3d, phy=M.LJ.trimmed.roxo,align.to.phy=F)
+  
+  Mauto.coord3d=arrayspecs(Mauto.coord,100,3)
+ PCAM.auto=gm.prcomp(Mauto.coord3d, phy=M.LJ.trimmed.roxo,align.to.phy=F)
+  #PCAM.auto$x[,1]=PCAM.auto$x[,1] * -1
+  #PCALJ.auto$x[,2]=PCALJ.auto$x[,2] * -1
+  #PCAM.auto$anc.x[,1]=PCAM.auto$anc.x[,1] * -1
+  #PCALJ.auto$anc.x[,2]=PCALJ.auto$anc.x[,2] * -1
+ 
+ summary(PCAM.trad)
+ summary(PCAM.auto)
+```
+
+```{r Figure Phylomorphospace Maxilla - Roxo}
+pdf(file = "../2_Output/Phylomorphospace-Maxilla-Traditional_Roxo.pdf", width=5, height=5)
+  plot(PCAM.trad, phylo = TRUE, pch=21, bg=phylo.M.col, cex=2,
+       xlab = "PC1 (78.7%)", ylab = "PC2 (16.9%)", ylim = c(-0.2,0.2), 
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+axis(4, las=1, labels = FALSE)
+  addTextLabels(PCAM.trad$x[,1], PCAM.trad$x[,2], phylo.M.classifiers$Figure, col.label=phylo.M.col)
+ dev.off()
+
+pdf(file = "../2_Output/Phylomorphospace-Maxilla-Automated_Roxo.pdf", width=5, height=5)
+  plot(PCAM.auto, phylo = TRUE, pch=21, bg=phylo.M.col, cex=2,
+       xlab = "PC1 (67.4%)", ylab = "PC2 (22.5%)", ylim = c(-0.15,0.15), yaxt="n",
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))  
+#mtext("PC2 (26.9%)", side = 4, line = 1)
+axis(2, las=1)
+axis(1) 
+  addTextLabels(PCAM.auto$x[,1], PCAM.auto$x[,2], phylo.M.classifiers$Figure, col.label=phylo.M.col)
+ dev.off()
+```
+
+```{r Prepare Phylomorphospace Lower Jaw - Roxo}
+pdf(file = "../2_Output/phylo.pdf", width = 4, height = 6)
+plot(M.LJ.trimmed.roxo)
+dev.off()
+
+#Traditional - Lower Jaw
+  #Average landmarks
+  OG.LJtradcoord=two.d.array(LJ.traditional.gpa$coords)
+  LJtrad.coord=aggregate(OG.LJtradcoord~classifier$Average, FUN = mean)
+  LJtrad.coord=data.frame(LJtrad.coord, row.names = 1)
+
+  #Trim species procrusties landmarks to match phylogeny
+  include=M.LJ.trimmed.roxo$tip.label
+  LJtrad.coord=subset(LJtrad.coord, rownames(LJtrad.coord) %in% include)
+  LJtrad.coord=LJtrad.coord[M.LJ.trimmed.roxo$tip.label,] #Order landmarks - needed for labels and colors to be correct
+  
+  #Find distinct classifiers and trim/order to match phylogeny
+  row.names(classifier)=classifier$Species_LJ.M
+  phylo.LJ.classifiers=subset(classifier, rownames(classifier) %in% include)
+  phylo.LJ.classifiers=phylo.LJ.classifiers[M.LJ.trimmed.roxo$tip.label,]
+  
+  #Set color for Phylomorphospace
+  phylo.LJ.col=as.character(phylo.LJ.classifiers$Color)
+  names(phylo.LJ.col)=phylo.LJ.classifiers$Subfamily
+
+
+#Auto - Lower Jaw
+    #Average landmarks
+  OG.LJautocoord=two.d.array(LJgpa$coords)
+  LJauto.coord=aggregate(OG.LJautocoord~classifier$Average, FUN = mean)
+  LJauto.coord=data.frame(LJauto.coord, row.names = 1)
+  
+  #Trim species procrusties landmarks to match phylogeny
+  LJauto.coord=subset(LJauto.coord, rownames(LJauto.coord) %in% include)
+  LJauto.coord=LJauto.coord[M.LJ.trimmed.roxo$tip.label,] #Order landmarks - needed for labels and colors to be correct
+  
+  LJtrad.coord3d=arrayspecs(LJtrad.coord,14,3)
+  PCALJ.trad=gm.prcomp(LJtrad.coord3d, phy=M.LJ.trimmed.roxo,align.to.phy=F)
+  
+  LJauto.coord3d=arrayspecs(LJauto.coord,300,3)
+  PCALJ.auto=gm.prcomp(LJauto.coord3d, phy=M.LJ.trimmed.roxo,align.to.phy=F)
+  PCALJ.auto$x[,1]=PCALJ.auto$x[,1] * -1
+  #PCALJ.auto$x[,2]=PCALJ.auto$x[,2] * -1
+  PCALJ.auto$anc.x[,1]=PCALJ.auto$anc.x[,1] * -1
+  #PCALJ.auto$anc.x[,2]=PCALJ.auto$anc.x[,2] * -1
+  
+  summary(PCALJ.trad)
+  summary(PCALJ.auto)
+```
+
+```{r Figure Phylomorphospace Lower Jaw - Roxo}
+pdf(file = "../2_Output/Phylomorphospace-LowerJaw-Traditional_Roxo.pdf", width=5, height=5)
+  plot(PCALJ.trad, phylo = TRUE, time.plot=T, pch=21, bg=phylo.LJ.col, cex=2,
+       xlab = "PC1 (65.5%)", ylab = "PC2 (26.6%)", ylim = c(-0.4,0.3), 
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+axis(4, las=1, labels = FALSE)
+  addTextLabels(PCALJ.trad$x[,1], PCALJ.trad$x[,2], phylo.LJ.classifiers$Figure, col.label=phylo.LJ.col)
+dev.off()
+
+  
+pdf(file = "../2_Output/Phylomorphospace-LowerJaw-Automated_Roxo.pdf", width=5, height=5)
+  plot(PCALJ.auto, phylo = TRUE, pch=21, bg=phylo.LJ.col, cex=2,
+       xlab = "PC1 (72.2%)", ylab = "", ylim = c(-0.4,0.3), yaxt="n",
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))  
+mtext("PC2 (22.1%)", side = 4, line = 1)
+axis(2, las=1)
+axis(1)  
+  addTextLabels(PCALJ.auto$x[,1], PCALJ.auto$x[,2], phylo.LJ.classifiers$Figure, col.label=phylo.LJ.col)
+dev.off()
+```
+
+```{r Phylomorphospace ALL}
+pdf(file = "../2_Output/Phylomorphospaces_Roxo.pdf", width=7, height=10)
+par(mfrow=c(3,2))
+par(mar=c(5,5,2,2), oma=c(1,1,1,1))
+
+# PREMAXILLA TRADITIONAL
+  plot(PCAPM.trad, phylo = T, time.plot = F, pch=21, bg=phylo.PM.col, cex=2, 
+       #ylim = c(-.2,.23),
+       phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg =
+                   "grey", node.cex = 1, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,
+                   node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+  addTextLabels(PCAPM.trad$x[,1], PCAPM.trad$x[,2], phylo.PM.classifiers$Figure, col.label=phylo.PM.col)
+
+# PREMAXILLA AUTO
+  plot(PCAPM.auto, phylo = T, time.plot = F, pch=21, bg=phylo.PM.col, cex=2, 
+       #ylim = c(-.2,.23),
+       phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg =
+                   "grey", node.cex = 1, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,
+                   node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+  addTextLabels(PCAPM.auto$x[,1], PCAPM.auto$x[,2], phylo.PM.classifiers$Figure, col.label=phylo.PM.col)
+
+# MAXILLA TRADITIONAL
+  plot(PCAM.trad, phylo = T, time.plot = F, pch=21, bg=phylo.M.col, cex=2,
+       #ylim = c(-.2,.15),
+       phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg =
+                   "grey", node.cex = 1, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,
+                   node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+  addTextLabels(PCAM.trad$x[,1], PCAM.trad$x[,2], phylo.M.classifiers$Figure, col.label=phylo.M.col)
+
+# MAXILLA AUTO
+  plot(PCAM.auto, phylo = T, time.plot = F, pch=21, bg=phylo.M.col, cex=2,
+       #ylim = c(-.2,.15),
+       phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg =
+                   "grey", node.cex = 1, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,
+                   node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1))) 
+  addTextLabels(PCAM.auto$x[,1], PCAM.auto$x[,2], phylo.M.classifiers$Figure, col.label=phylo.M.col)
+
+# LOWER JAW TRADITIONAL
+  plot(PCALJ.trad, phylo = T, time.plot = F, pch=21, bg=phylo.LJ.col, cex=2,
+       #ylim = c(-.3,.25),
+       phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg =
+                   "grey", node.cex = 1, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,
+                   node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+  addTextLabels(PCALJ.trad$x[,1], PCALJ.trad$x[,2], phylo.LJ.classifiers$Figure, col.label=phylo.LJ.col)
+
+# LOWER JAW AUTO
+  plot(PCALJ.auto, phylo = T, time.plot = F, pch=21, bg=phylo.LJ.col, cex=2,
+       #ylim = c(-.3,.25), 
+       phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg =
+                   "grey", node.cex = 1, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,
+                   node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+  addTextLabels(PCALJ.auto$x[,1], PCALJ.auto$x[,2], phylo.LJ.classifiers$Figure, col.label=phylo.LJ.col)
+
+dev.off()
+```
+
+### Analyses ###
+```{r Phylosignal Analyses}
+physignal(PMtrad.coord3d, trimmed.roxo.PM)
+physignal(PMauto.coord3d, trimmed.roxo.PM)
+
+physignal(Mtrad.coord3d, M.LJ.trimmed.roxo)
+physignal(Mauto.coord3d, M.LJ.trimmed.roxo)
+
+physignal(LJtrad.coord3d, M.LJ.trimmed.roxo)
+physignal(LJauto.coord3d, M.LJ.trimmed.roxo)
+```
+
+```{r PGLS: Premaxilla}
+pgls.classifiers=read.csv("Classifiers_all_individualbones.csv", header = T, row.names = 1)
+PM.classifiers=subset(pgls.classifiers, In.Roxo.PM == 1)
+  PM.classifiers=PM.classifiers[trimmed.roxo$tip.label,]
+
+## Premaxilla
+  ##Traditional
+    PMtrad.coord.fit=as.matrix(PMtrad.coord)
+full.PM.trad=lm(PMtrad.coord.fit~PM.classifiers$Diet.Primary+PM.classifiers$Substrate)
+full.lm.PM.trad=procD.pgls(full.PM.trad, phy = trimmed.roxo.PM, SS.type = "III")
+
+diet.fit.PM.trad=lm(PMtrad.coord.fit~PM.classifiers$Diet.Primary)
+diet.lm.PM.trad=procD.pgls(diet.fit.PM.trad, phy = trimmed.roxo.PM, SS.type = "III")
+
+summary(full.lm.PM.trad)
+summary(diet.lm.PM.trad)
+
+anova(diet.lm.PM.trad, full.lm.PM.trad)
+
+
+    ##Check for interation between flow and substrate = not significant
+    #fit.PM.trad4=lm(PMtrad.coord.fit~PM.classifiers$Flow*PM.classifiers$Substrate)
+    #lm.PM.trad4=procD.pgls(fit.PM.trad4, phy = trimmed.roxo.PM, SS.type = "III")
+    #summary(fit.PM.trad4) 
+
+  ##Automated
+    PMauto.coord.fit=as.matrix(PMauto.coord)
+full.PM.auto=lm(PMauto.coord.fit~PM.classifiers$Diet.Primary+PM.classifiers$Substrate)
+full.lm.PM.auto=procD.pgls(full.PM.auto, phy = trimmed.roxo.PM, SS.type = "III")
+
+diet.fit.PM.auto=lm(PMauto.coord.fit~PM.classifiers$Diet.Primary)
+diet.lm.PM.auto=procD.pgls(diet.fit.PM.auto, phy = trimmed.roxo.PM, SS.type = "III")
+
+summary(full.lm.PM.auto)
+summary(diet.lm.PM.auto)
+
+anova(diet.lm.PM.auto, full.lm.PM.auto)
+
+#Pairwise Comparisons
+  # Traditional - Diet and Flow significant
+  PM.trad.diet=pairwise(diet.lm.PM.trad, groups = PM.classifiers$Diet.Primary)
+
+  summary(PM.trad.diet)
+
+  # Automated - Diet significant
+  PM.auto.diet=pairwise(diet.lm.PM.auto, groups = PM.classifiers$Diet.Primary)
+
+  summary(PM.auto.diet)
+```
+
+```{r PGLS: Maxilla}
+M.LJ.classifiers=subset(pgls.classifiers, In.Roxo == 1)
+  M.LJ.classifiers=M.LJ.classifiers[M.LJ.trimmed.roxo$tip.label,]
+
+## Maxilla
+  ##Traditional
+    Mtrad.coord.fit=as.matrix(Mtrad.coord)
+full.M.trad=lm(Mtrad.coord.fit~M.LJ.classifiers$Diet.Primary+M.LJ.classifiers$Substrate)
+full.lm.M.trad=procD.pgls(full.M.trad, phy = M.LJ.trimmed.roxo, SS.type = "III")
+
+diet.M.trad=lm(Mtrad.coord.fit~M.LJ.classifiers$Diet.Primary)
+diet.lm.M.trad=procD.pgls(diet.M.trad, phy = M.LJ.trimmed.roxo, SS.type = "III")
+
+summary(full.lm.M.trad)
+summary(diet.lm.M.trad)
+
+anova(diet.lm.M.trad, full.lm.M.trad)
+
+  ##Automated
+    Mauto.coord.fit=as.matrix(Mauto.coord)
+full.M.auto=lm(Mauto.coord.fit~M.LJ.classifiers$Diet.Primary+M.LJ.classifiers$Substrate)
+full.lm.M.auto=procD.pgls(full.M.auto, phy = M.LJ.trimmed.roxo, SS.type = "III")
+
+  diet.M.auto=lm(Mauto.coord.fit~M.LJ.classifiers$Diet.Primary)
+diet.lm.M.auto=procD.pgls(diet.M.auto, phy = M.LJ.trimmed.roxo, SS.type = "III")
+
+summary(full.lm.M.auto)
+summary(diet.lm.M.auto)
+
+anova(diet.lm.M.auto, full.lm.M.auto)
+```
+
+```{r PGLS: Lower Jaw}
+## Lower Jaw
+  ##Traditional
+    LJtrad.coord.fit=as.matrix(LJtrad.coord)
+full.LJ.trad=lm(LJtrad.coord.fit~M.LJ.classifiers$Diet.Primary+M.LJ.classifiers$Substrate)
+full.lm.LJ.trad=procD.pgls(full.LJ.trad, phy = M.LJ.trimmed.roxo, SS.type = "III")
+
+diet.LJ.trad=lm(LJtrad.coord.fit~M.LJ.classifiers$Diet.Primary)
+diet.lm.LJ.trad=procD.pgls(diet.LJ.trad, phy = M.LJ.trimmed.roxo, SS.type = "III")
+
+
+summary(full.lm.LJ.trad)
+summary(diet.lm.LJ.trad)
+
+anova(diet.lm.LJ.trad, full.lm.LJ.trad)
+
+  ##Automated
+    LJauto.coord.fit=as.matrix(LJauto.coord)
+full.LJ.auto=lm(LJauto.coord.fit~M.LJ.classifiers$Diet.Primary+M.LJ.classifiers$Substrate)
+full.lm.LJ.auto=procD.pgls(full.LJ.auto, phy = M.LJ.trimmed.roxo, SS.type = "III")
+
+diet.LJ.auto=lm(LJauto.coord.fit~M.LJ.classifiers$Diet.Primary)
+diet.lm.LJ.auto=procD.pgls(diet.LJ.auto, phy = M.LJ.trimmed.roxo, SS.type = "III")
+
+
+summary(full.lm.LJ.auto)
+summary(diet.lm.LJ.auto)
+
+anova(diet.lm.LJ.auto, full.lm.LJ.auto)
+
+
+#Pairwise Comparisons
+  # Automated - Diet significant
+  LJ.auto.diet=pairwise(diet.lm.LJ.auto, groups = M.LJ.classifiers$Diet.Primary)
+  summary(LJ.auto.diet)
+```
+
+```{r Figures for significant findings}
+#Premaxilla Diet p=0.019 *
+  #Set color for Phylomorphospace
+    Diet.PM.col=as.character(PM.classifiers$diet.col)
+    names(Diet.PM.col)=PM.classifiers$Diet.Primary
+
+    pdf(file = "../2_Output/Phylomorphospace-Premaxilla-diet.pdf", width=5, height=5)
+    plot(PCAPM.auto, phylo = TRUE, pch=21, bg=Diet.PM.col, cex=2,
+       xlab = "PC1 (61.5%)", ylab = "PC2 (28.9%)", ylim = c(-0.3,0.3),
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))  
+    addTextLabels(PCAPM.auto$x[,1], PCAPM.auto$x[,2], phylo.PM.classifiers$Figure, col.label=Diet.PM.col)
+dev.off()
+    
+#Premaxilla Substrate p=0.014 *
+    Sub.PM.col=as.character(PM.classifiers$sub.col)
+    names(Sub.PM.col)=PM.classifiers$Substrate
+  
+    pdf(file = "../2_Output/Phylomorphospace-Premaxilla-sub.pdf", width=5, height=5)
+    plot(PCAPM.auto, phylo = TRUE, pch=21, bg=Sub.PM.col, cex=2,
+       xlab = "PC1 (61.5%)", ylab = "PC2 (28.9%)", ylim = c(-0.3,0.3),
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))  
+    addTextLabels(PCAPM.auto$x[,1], PCAPM.auto$x[,2], phylo.PM.classifiers$Figure, col.label=Sub.PM.col)
+dev.off()
+    
+#LowerJaw Diet p= 0.019 *
+    Diet.LJ.col=as.character(M.LJ.classifiers$diet.col)
+    names(Diet.LJ.col)=PM.classifiers$Diet.Primary
+    
+pdf(file = "../2_Output/Phylomorphospace-LowerJaw-diet.pdf", width=5, height=5)
+  plot(PCALJ.auto, phylo = TRUE, pch=21, bg=Diet.LJ.col, cex=2,
+       xlab = "PC1 (72.2%)", ylab = "PC2 (22.1%)", ylim = c(-0.4,0.3),
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))  
+
+  addTextLabels(PCALJ.auto$x[,1], PCALJ.auto$x[,2], phylo.LJ.classifiers$Figure, col.label=Diet.LJ.col)
+  dev.off()
+  
+  
+  
+  
+  
+#### START HERE ####
+  plot(PCALJ.auto, phylo = TRUE, time.plot = TRUE, pch=21, bg=phylo.LJ.col, cex=2, xlab = "PC1 (72.2%)", ylab = "PC2 (22.1%)", ylim = c(-0.4,0.3), phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1))) 
+
+  plot3d(PCALJ.auto$x[,1],PCALJ.auto$x[,2],PCALJ.auto$x[,3], col = Diet.LJ.col, size = 15)
+  
+  
+  
+  
+  
+PMmesh=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/2Premaxilla/Baryancistrus_xanthellus-Premaxilla_L.ply")
+PMmesh$material$color = "light grey"
+
+  
+meanshape=mshape(PMtrad.coord3d)
+plotRefToTarget(meanshape, PCAPM.trad$shapes$shapes.comp1$max, method = "surface", mesh = PMmesh) # mean shape vs negative end of PC1
+
+meanshape=mshape(PMauto.coord3d)
+plotRefToTarget(meanshape, PCAPM.auto$shapes$shapes.comp1$min, method = "surface", mesh = PMmesh) # mean shape vs negative end of PC1
+
+
+
+
+variation <- variation.range(PMauto.coord3d, return.ID = TRUE)
+
+M1 <- PMauto.coord3d[, , variation$min.max[1]]
+M2 <- PMauto.coord3d[, , variation$min.max[2]]
+var_val <- variation$range[, 1]
+
+procrustes.var.plot(M1, M2, col.val = var_val, col = list(grDevices::heat.colors,"grey"))
+procrustes.var.plot(M1, M2, col = grDevices::heat.colors, col.val = var_val, col.range = c(0, 0.2), main = "Absolute colours (range = c(0, 0.2))")
+
+
+
+
+
+```
+
+```{r PLS}
+#Premaxilla
+Pm.PLS = two.b.pls(PMauto.coord3d, PMtrad.coord3d)
+summary(Pm.PLS)
+plot(Pm.PLS)
+
+pdf(file = "../2_Output/PLS-premaxilla.pdf", width=4, height=4)
+plot(Pm.PLS, phylo.PM.classifiers$Figure, bg=phylo.PM.col, pch=21,cex=1.2)
+dev.off()
+
+#Maxilla
+M.PLS = two.b.pls(Mauto.coord3d, Mtrad.coord3d)
+summary(M.PLS)
+plot(M.PLS)
+
+pdf(file = "../2_Output/PLS-maxilla.pdf", width=4, height=4)
+plot(M.PLS, phylo.M.classifiers$Figure, bg=phylo.M.col, pch=21,cex=1.2)
+dev.off()
+
+#LowerJaw
+LJ.PLS = two.b.pls(LJauto.coord3d, LJtrad.coord3d)
+summary(LJ.PLS)
+plot(LJ.PLS)
+
+pdf(file = "../2_Output/PLS-lowerjaw.pdf", width=4, height=4)
+plot(LJ.PLS, phylo.LJ.classifiers$Figure, bg=phylo.LJ.col, pch=21,cex=1.2)
+dev.off()
+```

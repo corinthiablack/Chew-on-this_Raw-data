@@ -1,0 +1,43 @@
+MorphosourceID,Collection#,Species_LJ.M,Average,Species_PM,Subfamily,Tribe.Roxo,Tribe.Lujan,Figure,Color,In Roxo,In Lujan,Diet.Primary,Diet.notes,Substrate,Substrate.notes,Flow,Flow.notes,References,Other.notes
+M44337-80318,ANSP187156,Gymnotocinclus_anosteos,Gymnotocinclus_anosteos,Gymnotocinclus_anosteos,Hypoptopomatinae,Corumbataia Clade,uncertain,G. ano,#ffb677,1,0,algae,,rocks.wood,,fast,,,
+M38996-70689,ANSP187011,Hisonotus_maculipinnis,Hisonotus_maculipinnis,Hisonotus_maculipinnis,Hypoptopomatinae,Hisonotini,Otothyrini,H. mac,#ffb677,1,1,algae,,plants.wood,,fast,,,
+M24040-47256,MCZ36170,Cordylancistrus_torbesensis,Cordylancistrus_torbesensis,Cordylancistrus_torbesensis,Hypostominae,,Ancistrini,C. tor,#004949,0,1,algae,,,"From transparent waters, with strong to moderate current with river beds formed by rocks, small stones and sand, scarce or absent aquatic vegetation (Ref. 40935).",fast,,https://www.fishbase.de/summary/Cordylancistrus-perijae,
+M37978-69314,ANSP185289,Dekeyseria_pulchra,Dekeyseria_pulchra,Dekeyseria_pulchra,Hypostominae,,Ancistrini,D. pul,#004949,0,1,,,,,,,,
+M37577-68818,ANSP160860,Dentectus_barbarmatus,Dentectus_barbarmatus,Dentectus_barbarmatus,Loricariinae,,Loricariini,D. bar,#009292,0,0,,,,,,,,
+M38998-70693,ANSP133767,Hypoptopoma_spectabile,Hypoptopoma_spectabile,Hypoptopoma_spectabile,Hypoptopomatinae,Hypoptopomatini,Hypoptopomatini,H. spe,#ffb677,1,1,algae,,plants.wood,,slow,,,
+M37581-68823,ANSP198923,Hypoptopoma_thoracatum,Hypoptopoma_thoracatum,Hypoptopoma_thoracatum,Hypoptopomatinae,,Hypoptopomatini,H. tho,#ffb677,1,0,algae,,plants.wood,,slow,,,
+M37975-69310,ANSP174117,Microlepidogaster_perforatus,Microlepidogaster_perforatus,Microlepidogaster_perforatus,Hypoptopomatinae,Hisonotini,Otothyrini,M. per,#ffb677,1,1,algae,,gravel.stone.sand,,mod,,,
+M44340-80321,ANSP190961,Harttiella_longicauda,Harttiella_longicauda,Harttiella_longicauda,Loricariinae,,Harttiini,H. lon,#009292,0,0,,,,,,,,
+M37597-68845,ANSP192919,Hemiodontichthys_acipenserinus,Hemiodontichthys_acipenserinus,NA,Loricariinae,,Loricariini,H. aci,#009292,0,0,,,,,,,,
+M44346-80328,ANSP198032,Hirtella_carinata,Hirtella_carinata,Hirtella_carinata,Neoplecostominae,,,H. car,#ff6db6,0,0,,,,,,,,
+M39000-70695,ANSP174732,Otocinclus_vittatus,Otocinclus_vittatus,Otocinclus_vittatus,Hypoptopomatinae,Otocinclus Clade,Hypoptopomatini,O. vit,#ffb677,1,1,biofilm,,wood,,slow,,,
+M44336-80317,ANSP168971,Parotocinclus_maculicauda,Parotocinclus_maculicauda,Parotocinclus_maculicauda,Hypoptopomatinae,Hisonotini,Otothyrini,P. mac,#ffb677,1,1,algae,,gravel,,med.fast,,,
+M37989-69325,ANSP198216,Baryancistrus_xanthellus,Baryancistrus_xanthellus,Baryancistrus_xanthellus,Hypostominae,Hemiancistrus Clade,Ancistrini,B. xan,#004949,1,1,algae,"chiefly of algae, particularly diatoms and filamentous genera such as Spirogyra? alongside smaller amounts of invertebrates such as chironomids and bryozoans",boulder,under and among submerged rocks and boulders,fast,whitewater rapids,https://www.seriouslyfish.com/species/baryancistrus-xanthellus/,"Temperature: 27 Ð 32 ¡C; this species will not thrive in cooler water.
+
+pH: 6.0 Ð 8.0
+
+Hardness: 54 Ð 268 ppm"
+M24790-48802,AUMXXXXX,Chaetostoma_milesi,Chaetostoma_milesi,Chaetostoma_milesi,Hypostominae,Chaetostoma Clade,Ancistrini,C. mil,#004949,1,0,algae,"Mostly algivores, occationally feed on insect larvae",cobbles,rocky,fast,,https://www.planetcatfish.com/common/species.php?species_id=3705 ; ,"*Diet, substrate, flow based on C. joropo. Male, upside down, guards an adhesive clutch of eggs by, more or less, covering it with his body; shallow (0.20Ð0.55 m) but well
+oxygenated water (6.1Ð9.5 mg/L), and slightly basic pH (7.1Ð8.6); conductivity (10.4Ð258.0 _S) as well as
+temperature (21Ð30¡C) are variable"
+M37572-68813,ANSP197839,Hypancistrus_zebra,Hypancistrus_zebra,Hypancistrus_zebra,Hypostominae,Peckoltia Clade,Ancistrini,H. zeb,#004949,1,1,algae.sponges,,bedrock.cobble,,fast,,,
+M24526-48318,AUMXXXXX,Leporacanthicus_joselimai,Leporacanthicus_joselimai,NA,Hypostominae,,Ancistrini,L. jos,#004949,1,0,,,,,,,,
+M37594-68841,ANSP177363,Lithoxus_lithoides,Lithoxus_lithoides,NA,Hypostominae,,Ancistrini,L. lit,#004949,0,0,,,,,,,,
+M37980-69316,ANSP199002,Micracanthicus_vandragti,Micracanthicus_vandragti,Micracanthicus_vandragti,Hypostominae,Peckoltia Clade,Ancistrini,M. van,#004949,1,0,invertebrates,,bedrock.cobble,,fast,,,
+M37593-68839,ANSP194642,Panaqolus,Panaqolus,Panaqolus,Hypostominae,Peckoltia Clade,Ancistrini,P. sp,#004949,1,1,wood,,wood,,med,,,
+M37982-69318,ANSP128682,Panaque_nigrolineatus,Panaque_nigrolineatus,Panaque_nigrolineatus,Hypostominae,,Ancistrini,P. nig,#004949,1,1,wood,,wood,,med.fast,,,
+M24791-48803,AUMXXXXX,Panaque_nigrolineatus_AUM,Panaque_nigrolineatus,Panaque_nigrolineatus_AUM,Hypostominae,,Ancistrini,P. nig,#004949,1,1,wood,,wood,,med.fast,,,
+M44257-80205,YPM023896,Pseudolithoxus_tigris,Pseudolithoxus_tigris,Pseudolithoxus_tigris,Hypostominae,Ancistrini,Ancistrini,P. tig,#004949,1,1,algae,,bedrock.cobble,,fast,,,
+M37599-68848,ANSP191381,Farlowella_acus,Farlowella_acus,Farlowella_acus,Loricariinae,Farlowellina,Harttiini,F. acu,#009292,1,1,algae,,sand,,fast,,https://www.planetcatfish.com/common/species.php?species_id=777,
+M38995-70687,ANSP84381,Otothyris_lophophanes,Otothyris_lophophanes,Otothyris_lophophanes,Hypoptopomatinae,,Otothyrini,O. lop,#ffb677,0,1,,,,,,,,
+M44347-80330,ANSP177381,Oxyropsis_ephippia,Oxyropsis_ephippia,Oxyropsis_ephippia,Hypoptopomatinae,,Hypoptopomatini,O. eph,#ffb677,0,1,,,,,,,,
+M37586-68830,ANSP193942,Oxyropsis_wrightiana,Oxyropsis_wrightiana,Oxyropsis_wrightiana,Hypoptopomatinae,,Hypoptopomatini,O. wri,#ffb677,0,0,,,,,,,,
+M23563-46120,MCZ8121,Harttia_loricariformis,Harttia_loricariformis,Harttia_loricariformis,Loricariinae,Harttiini,Harttiini,H. lor,#009292,1,1,algae,,bedrock.cobble,,fast,,,
+M37571-68812,ANSP181100,Lamontichthys_filamentosus,Lamontichthys_filamentosus,Lamontichthys_filamentosus,Loricariinae,Farlowellina,Harttiini,L. fil,#009292,1,1,algae,Algae is ''processed'' for the tiny microorganisms within and this is very hard to replicate in the aquarium.,boulder,,fast,,https://www.planetcatfish.com/common/species.php?species_id=405,
+M37573-68814,ANSP178472,Loricaria_clavipinna,Loricaria_clavipinna,NA,Loricariinae,,Loricariini,L. cla,#009292,1,0,,,,,,,,
+M37590-68835,ANSP131614,Loricariichthys_maculatus,Loricariichthys_maculatus,NA,Loricariinae,,Loricariini,L. mac,#009292,1,0,,,,,,,,
+M37604-68856,ANSP191512,Planiloricaria_cryptodon,Planiloricaria_cryptodon,NA,Loricariinae,,Loricariini,P. cry,#009292,1,0,,,,,,,,
+M37606-68859,ANSP174122,Neoplecostomus_microp,Neoplecostomus_microp,Neoplecostomus_microp,Hypoptopomatinae,Neoplecostomini,,N. mic,#ffb677,1,1,algae,,bedrock.cobble,,fast,,,
+M37986-69322,ANSP173796,Pareiorhaphis_cameroni,Pareiorhaphis_cameroni,Pareiorhaphis_cameroni,Hypoptopomatinae,Neoplecostomini,,P. cam,#ffb677,1,1,algae,,bedrock.cobble,,fast,,,
+M37990-69326,ANSP174125,Pareiorhina_rudolphi,Pareiorhina_rudolphi,Pareiorhina_rudolphi,Hypoptopomatinae,Neoplecostomini,,P. rud,#ffb677,1,1,algae,,bedrock.cobble,,fast,,,
+M30925-59120,TCWC15249.01,Rhadinoloricaria_macromystax,Rhadinoloricaria_macromystax,Rhadinoloricaria_macromystax,Loricariinae,,Loricariini,R. mac,#009292,0,0,,,,,,,,

@@ -1,0 +1,815 @@
+---
+title: "Untitled"
+author: "Cori"
+date: "10/14/2020"
+output: html_document
+---
+
+```{r Setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("geomorph")
+library(geomorph)
+library(Morpho)
+library(phytools)
+library(BiodiversityR)
+#if(!require(devtools)) install.packages("devtools")
+library(devtools)
+#install_github("TGuillerme/landvR")
+library(landvR)
+library("devtools")
+#install_github("JosephCrispell/basicPlotteR")
+library(basicPlotteR)
+#devtools::install_github("mlcollyer/RRPP", build_vignettes = TRUE,force = TRUE)
+library(mvMORPH)
+#install.packages("PCDimension")
+library(PCDimension)
+```
+
+```{r Load color palette and classifier data}
+colblind_pal <- c("#000000", "#004949", "#009292", "#ff6db6", "#ffb677", "#490092", "#006ddb", "#b66dff", "#b6dbff", "#920000", "#924900", "#dbd100", "#24ff24", "#ffff6d", "#6db6ff")
+
+classifier=read.csv("Classifiers_all.csv", header = T, row.names = 1)
+```
+
+Function to load landmark data from fcsv format
+```{r Set function to load landmark data}
+keep.coordinates.only = function (input) {
+  input = as.matrix(input [, 2:4])
+  return(input)
+}
+``` 
+
+### COMBINE JAWS ###
+```{r Load landmark data}
+#--- Traditional Landmarking ---
+#Premax
+path.to.premaxilla.traditional = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/2_Traditional GM copy/Premaxilla_new'
+f = dir (patt='fcsv', path = path.to.premaxilla.traditional)
+names=list.files(path.to.premaxilla.traditional)
+names=gsub("-.*","",names)
+names=as.list(names)
+PMtraditionalLMs = array (dim = c(6, 3, 30))
+for (i in 1:30) {
+    PMtraditionallandmark = read.csv (file = paste(path.to.premaxilla.traditional, f[i], sep = '/'), skip = 2, header = TRUE)
+    PMtraditionalLMs [,,i] = keep.coordinates.only(PMtraditionallandmark)
+    #print(f[i])
+}
+PM.traditional.gpa = gpagen(PMtraditionalLMs, ProcD = TRUE)
+dimnames(PM.traditional.gpa$coords)[[3]]=names
+
+#Maxilla
+path.to.maxilla.traditional = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/2_Traditional GM copy/Maxilla_appended/'
+f = dir (patt='fcsv', path = path.to.maxilla.traditional)
+names=list.files(path.to.maxilla.traditional)
+names=gsub("-.*","",names)
+names=as.list(names)
+MLMs.traditional = array (dim = c(24, 3, 30))
+for (i in 1:30) {
+    Mlandmark.traditional = read.csv (file = paste(path.to.maxilla.traditional, f[i], sep = '/'), skip = 2, header = TRUE)
+    MLMs.traditional [,,i] = keep.coordinates.only(Mlandmark.traditional)
+    #print(f[i])
+}
+sliders=define.sliders(c(5:24), 1)
+Mgpa.traditional = gpagen(MLMs.traditional, curves = sliders)
+dimnames(Mgpa.traditional$coords)[[3]]=names
+
+#LowerJaw
+path.to.lowerjaw.traditional = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/2_Traditional GM copy/LowerJaw/'
+f = dir (patt='fcsv', path = path.to.lowerjaw.traditional)
+names=list.files(path.to.lowerjaw.traditional)
+names=gsub("-.*","",names)
+names=as.list(names)
+LJtraditionalLMs = array (dim = c(14, 3, 30))
+for (i in 1:30) {
+    LJtraditionallandmark = read.csv (file = paste(path.to.lowerjaw.traditional, f[i], sep = '/'), skip = 2, header = TRUE)
+    LJtraditionalLMs [,,i] = keep.coordinates.only(LJtraditionallandmark)
+    #print(f[i])
+}
+LJ.traditional.gpa = gpagen(LJtraditionalLMs, ProcD = TRUE)
+dimnames(LJ.traditional.gpa$coords)[[3]]=names
+
+#--- Auto3DGM ---
+#Premaxilla
+path.to.premaxilla = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Landmarks/Automated/Premaxilla/'
+f = dir (patt='fcsv', path = path.to.premaxilla)
+names=list.files(path.to.premaxilla)
+names=gsub("-.*","",names)
+names=as.list(names)
+PMLMs = array (dim = c(200, 3, 30))
+for (i in 1:30) {
+    PMlandmark = read.csv (file = paste(path.to.premaxilla, f[i], sep = '/'), skip = 2, header = TRUE)
+    PMLMs [,,i] = keep.coordinates.only(PMlandmark)
+    #print(f[i])
+}
+PMgpa = gpagen(PMLMs, ProcD = TRUE)
+dimnames(PMgpa$coords)[[3]]=names
+
+#Maxilla
+path.to.maxilla = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Landmarks/Automated/Maxilla.comb/'
+f = dir (patt='fcsv', path = path.to.maxilla)
+names=list.files(path.to.maxilla)
+names=gsub("-.*","",names)
+names=as.list(names)
+MLMs = array (dim = c(100, 3, 30))
+for (i in 1:30) {
+    Mlandmark = read.csv (file = paste(path.to.maxilla, f[i], sep = '/'), skip = 2, header = TRUE)
+    MLMs [,,i] = keep.coordinates.only(Mlandmark)
+    #print(f[i])
+}
+Mgpa = gpagen(MLMs)
+dimnames(Mgpa$coords)[[3]]=names
+
+#LowerJaw
+path.to.lowerjaw = '~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Landmarks/Automated/LowerJaw.comb/'
+f = dir (patt='fcsv', path = path.to.lowerjaw)
+names=list.files(path.to.lowerjaw)
+names=gsub("-.*","",names)
+names=as.list(names)
+LJLMs = array (dim = c(300, 3, 30))
+for (i in 1:30) {
+    LJlandmark = read.csv (file = paste(path.to.lowerjaw, f[i], sep = '/'), skip = 2, header = TRUE)
+    LJLMs [,,i] = keep.coordinates.only(LJlandmark)
+    #print(f[i])
+}
+LJgpa = gpagen(LJLMs, ProcD = TRUE)
+dimnames(LJgpa$coords)[[3]]=names
+```
+
+
+```{r Combine Traditional Landmarks}
+#Traditional
+comb.traditional=combine.subsets(gpa = TRUE, premax=PM.traditional.gpa, max=Mgpa.traditional, lowerjaw=LJ.traditional.gpa)
+summary(comb.traditional)
+plot(comb.traditional$coords[,,1], pch = 21, bg = c(rep(1,6), rep(2,24), rep(3,14)), asp = 1)
+PCAcomb.traditional=gm.prcomp(comb.traditional$coords)
+dimnames(comb.traditional$coords)[[3]]=names
+  
+    PCA.Combine.Traditional=summary(PCAcomb.traditional)
+    write.csv(PCA.Combine.Traditional$PC.summary, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/PCA.Combine.Traditional.csv")
+
+#Automated
+comb.auto=combine.subsets(gpa = TRUE, premax=PMgpa, max=Mgpa, lowerjaw=LJgpa)
+summary(comb.auto)
+plot(comb.auto$coords[,,1], pch = 21, bg = c(rep(1,200), rep(2,100), rep(3,300)), asp = 1)
+PCAcomb.auto=gm.prcomp(comb.auto$coords)
+dimnames(comb.auto$coords)[[3]]=names
+
+    PCA.Combine.Auto=summary(PCAcomb.auto)
+    write.csv(PCA.Combine.Auto$PC.summary, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/PCA.Combine.Auto.csv")
+
+#Colors
+PMauto.label=subset(classifier, Species_PM != "NA")
+auto.col=colblind_pal
+names(auto.col)=levels(PMauto.label$Subfamily)
+auto.col=auto.col[match(PMauto.label$Subfamily,names(auto.col))]
+
+  plot.col=as.character(PMauto.label$Color)
+  names(plot.col)=PMauto.label$Subfamily
+
+
+#Figure
+pdf(file = "../2_Output/combine.traditional.pdf", width=5, height=5)
+plot(PCAcomb.traditional,pch=21, bg=plot.col, cex=2,  xlab = "PC1 (43.1%)", ylab = "PC2 (13.5%)")
+addTextLabels(PCAcomb.traditional$x[,1], PCAcomb.traditional$x[,2], PMauto.label$Figure, col.label=auto.col)
+dev.off()
+
+pdf(file = "../2_Output/combine.auto.pdf", width=5, height=5)
+plot(PCAcomb.auto,pch=21, bg=plot.col, cex=2,  xlab = "PC1 (30.1%)", ylab = "PC2 (15.5%)")
+addTextLabels(PCAcomb.auto$x[,1], PCAcomb.auto$x[,2], PMauto.label$Figure, col.label=auto.col)
+dev.off()
+
+pdf(file = "../2_Output/combine.auto_PC1-3.pdf", width=5, height=5)
+plot(PCAcomb.auto,pch=21, bg=plot.col, cex=2, axis1=1, axis2=3)
+addTextLabels(PCAcomb.auto$x[,1], PCAcomb.auto$x[,3], PMauto.label$Figure, col.label=auto.col)
+dev.off()
+```
+
+```{r Warpped shapes traditional}
+#findMeanSpec(comb.traditional$coords)
+
+#mesh.pm=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/2Premaxilla/Oxyropsis_ephippia-Premaxilla_L.ply")
+#mesh.pm$material$color = "light grey"
+
+#mesh.m=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/1Maxilla/Oxyropsis_ephippia-Maxilla_L.ply")
+#mesh.m$material$color = "light grey"
+
+#mesh.lj=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/3LowerJaw/Oxyropsis_ephippia-LowerJaw_L.ply")
+#mesh.lj$material$color = "light grey"
+
+# Premax = 1:6, Max = 7:30, LJ = 31:44
+# c(rep(1,6), rep(2,24), rep(3,14)), asp = 1)
+#med.shape=mshape(comb.traditional$coords)
+#med.pm=med.shape[1:6,]
+#med.m=med.shape[7:30,]
+#med.lj=med.shape[31:44,]
+
+#med.mesh.pm=warpRefMesh(mesh = mesh.pm, mesh.coord = comb.traditional$coords[1:6,,"Oxyropsis_ephippia"], med.pm)
+#med.mesh.m=warpRefMesh(mesh = mesh.m, mesh.coord = comb.traditional$coords[7:30,,"Oxyropsis_ephippia"], med.m)
+#med.mesh.lj=warpRefMesh(mesh = mesh.lj, mesh.coord = comb.traditional$coords[31:44,,"Oxyropsis_ephippia"], med.lj)
+
+#Premaxilla warp
+#PC1max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.traditional$shapes$shapes.comp1$max[1:6,])
+#PC1min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.traditional$shapes$shapes.comp1$min[1:6,])
+
+#PC2max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.traditional$shapes$shapes.comp2$max[1:6,])
+#PC2min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.traditional$shapes$shapes.comp2$min[1:6,])
+
+#plot3d(PC1min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/New/Comb.Trad.PM.PC1min.2.pdf", fmt="pdf")
+
+# Maxilla warps
+#PC1max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.traditional$shapes$shapes.comp1$max[7:30,])
+#PC1min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.traditional$shapes$shapes.comp1$min[7:30,])
+
+#PC2max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.traditional$shapes$shapes.comp2$max[7:30,])
+#PC2min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.traditional$shapes$shapes.comp2$min[7:30,])
+
+#plot3d(PC1min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/New/Comb.Trad.M.PC1min.2.pdf", fmt="pdf")
+
+#LowerJaw warps
+#PC1max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.traditional$shapes$shapes.comp1$max[31:44,])
+#PC1min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.traditional$shapes$shapes.comp1$min[31:44,])
+
+#PC2max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.traditional$shapes$shapes.comp2$max[31:44,])
+#PC2min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.traditional$shapes$shapes.comp2$min[31:44,])
+
+#plot3d(PC1min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/New/Comb.Trad.LJ.PC1min.2.pdf", fmt="pdf")
+```
+
+```{r Warpped shapes auto}
+#findMeanSpec(comb.auto$coords)
+
+#mesh.pm=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/2Premaxilla/Oxyropsis_ephippia-Premaxilla_L.ply")
+#mesh.pm$material$color = "light grey"
+
+#mesh.m=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/1Maxilla/Oxyropsis_ephippia-Maxilla_L.ply")
+#mesh.m$material$color = "light grey"
+
+#mesh.lj=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/3LowerJaw/Oxyropsis_ephippia-LowerJaw_L.ply")
+#mesh.lj$material$color = "light grey"
+
+# Premax = 1:200, Max = 201:300, LJ = 301:600
+#med.shape=mshape(comb.auto$coords)
+#med.pm=med.shape[1:200,]
+#med.m=med.shape[201:300,]
+#med.lj=med.shape[301:600,]
+
+#med.mesh.pm=warpRefMesh(mesh = mesh.pm, mesh.coord = comb.auto$coords[1:200,,"Oxyropsis_ephippia"], med.pm)
+#med.mesh.m=warpRefMesh(mesh = mesh.m, mesh.coord = comb.auto$coords[201:300,,"Oxyropsis_ephippia"], med.m)
+#med.mesh.lj=warpRefMesh(mesh = mesh.lj, mesh.coord = comb.auto$coords[301:600,,"Oxyropsis_ephippia"], med.lj)
+
+#Premaxilla warp
+#PC1max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp1$max[1:200,])
+#PC1min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp1$min[1:200,])
+
+#PC2max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp2$max[1:200,])
+#PC2min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp2$min[1:200,])
+
+#PC3max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp3$max[1:200,])
+#PC3min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp3$min[1:200,])
+
+#plot3d(PC1min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC3min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC3max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/Comb.Auto.PM.PC3max.pdf", fmt="pdf")
+
+# Maxilla warps
+#PC1max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp1$max[201:300,])
+#PC1min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp1$min[201:300,])
+
+#PC2max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp2$max[201:300,])
+#PC2min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp2$min[201:300,])
+
+#PC3max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp3$max[201:300,])
+#PC3min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp3$min[201:300,])
+
+#plot3d(PC1min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC3min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC3max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/Comb.Auto.M.PC1min.2.pdf", fmt="pdf")
+
+#LowerJaw warps
+#PC1max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp1$max[301:600,])
+#PC1min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp1$min[301:600,])
+
+#PC2max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp2$max[301:600,])
+#PC2min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp2$min[301:600,])
+
+#PC3max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp3$max[301:600,])
+#PC3min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp3$min[301:600,])
+
+#plot3d(PC1min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC3min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC3max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/Comb.Auto.LJ.PC1min.2.pdf", fmt="pdf")
+```
+
+```{r Phylomorphospace}
+#Roxo et al. 2019 phylogeny
+roxo=read.tree(file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/Roxo 2019_TimeTree.tre")
+
+#Trim Phylogeny
+species=unique(as.factor(classifier$Average))
+trimmed.roxo=drop.tip(roxo,roxo$tip.label[-na.omit(match(species, roxo$tip.label))]) 
+plot(trimmed.roxo)
+
+#Trim coords for traditional
+include=trimmed.roxo$tip.label
+coords.traditional=two.d.array(comb.traditional$coords)
+
+## Mean of species - average individual landmarks by species name
+coords.traditional=aggregate(coords.traditional~classifier$Average, FUN = mean)
+coords.traditional=data.frame(coords.traditional, row.names = 1)
+
+coords.traditional=subset(coords.traditional, rownames(coords.traditional) %in% include)
+coords.traditional=coords.traditional[match(trimmed.roxo$tip.label, rownames(coords.traditional)),]
+coords.traditional=na.omit(coords.traditional)
+#coords.traditional=coords.traditional[trimmed.roxo$tip.label,] #Order landmarks - needed for labels and colors to be correct
+
+#Find distinct classifiers and trim/order to match phylogeny
+coords.auto=two.d.array(comb.auto$coords)
+
+## Mean of species - average individual landmarks by species name
+coords.auto=aggregate(coords.auto~classifier$Average, FUN = mean)
+coords.auto=data.frame(coords.auto, row.names = 1)
+
+coords.auto=subset(coords.auto, rownames(coords.auto) %in% include)
+coords.auto=coords.auto[match(trimmed.roxo$tip.label, rownames(coords.auto)),]
+coords.auto=na.omit(coords.auto)
+#coords.auto=coords.auto[trimmed.roxo$tip.label,] #Order landmarks - needed for labels and colors to be correct
+
+
+  #Find distinct classifiers and trim/order to match phylogeny
+  classifier.ave=read.csv("Classifiers_average.csv", header = T, row.names = 1)
+  phylo.classifiers=subset(classifier.ave, row.names(classifier.ave) %in% include)
+
+  phylo.classifiers=phylo.classifiers[trimmed.roxo$tip.label,]
+  
+  
+  #Set color for Phylomorphospace
+  phylo.col=as.character(phylo.classifiers$Color)
+  names(phylo.col)=phylo.classifiers$Subfamily
+
+  threeD.coords.traditional=arrayspecs(coords.traditional,44,3)
+  PCA.traditional=gm.prcomp(threeD.coords.traditional, phy=trimmed.roxo,align.to.phy=F)
+  
+  threeD.coords.auto=arrayspecs(coords.auto,600,3)
+  PCA.auto=gm.prcomp(threeD.coords.auto, phy=trimmed.roxo,align.to.phy=F)
+
+  
+        PCA.Phylo.Combine.Trad=summary(PCA.traditional)
+    write.csv(PCA.Phylo.Combine.Trad$PC.summary, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/PCA.Phylo.Combine.Trad.csv")
+
+      PCA.Phylo.Combine.Auto=summary(PCA.auto)
+    write.csv(PCA.Phylo.Combine.Auto$PC.summary, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/PCA.Phylo.Combine.Auto.csv")
+
+  
+
+#Figure  .15: -.35
+pdf(file = "../2_Output/phylo.traditional.pdf", width=5, height=5)
+plot(PCA.traditional, phylo = T, time.plot = F, pch=21, bg=phylo.col, cex=2, xlab = "PC1 (42.9%)", ylab = "", ylim=c(-.22, 0.18), phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))#, yaxt="n")
+mtext("PC2 (13.7%)", side = 2, line = 1)
+axis(4, las=1, labels = FALSE)
+addTextLabels(PCA.traditional$x[,1], PCA.traditional$x[,2], phylo.classifiers$Figure, col.label=phylo.col)
+dev.off()
+
+pdf(file = "../2_Output/phylo.auto.pdf", width=5, height=5)
+plot(PCA.auto, phylo = T, time.plot = F, pch=21, bg=phylo.col, cex=2,
+       xlab = "PC1 (25.7%)", ylab = "", ylim=c(-.22, 0.18), yaxt="n",
+       phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+mtext("PC2 (16.4%)", side = 4, line = 1)
+axis(2, las=1)
+axis(1)
+  addTextLabels(PCA.auto$x[,1], PCA.auto$x[,2], phylo.classifiers$Figure, col.label=phylo.col)
+dev.off()
+
+
+pdf(file = "../2_Output/phylomorphospaces.a.trad.b.auto.pdf", width=10, height=5)
+par(mfrow=c(1,2))
+plot(PCA.traditional, phylo = T, time.plot = F, pch=21, bg=phylo.col, cex=2, xlab = "PC1 (42.9%)", ylab = "PC2 (13.7%)", phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+addTextLabels(PCA.traditional$x[,1], PCA.traditional$x[,2], phylo.classifiers$Figure, col.label=phylo.col)
+
+plot(PCA.auto, phylo = T, time.plot = F, pch=21, bg=phylo.col, cex=2,
+       xlab = "PC1 (25.7%)", ylab = "PC2 (16.4%)",
+       phylo.par = list(tip.labels = F, node.labels = TRUE, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+addTextLabels(PCA.auto$x[,1], PCA.auto$x[,2], phylo.classifiers$Figure, col.label=phylo.col)
+dev.off()
+
+pdf(file = "../2_Output/phylo.auto.PC1_3.pdf", width=5, height=5)
+plot(PCA.auto, phylo = T, time.plot = F, pch=21, bg=phylo.col, cex=2, axis1=1, axis2=3,
+       phylo.par = list(tip.labels = F, node.labels = F, anc.states = TRUE, node.bg ="grey", node.cex = .5, edge.color = "grey", edge.width = 1.5, tip.txt.cex = .5,node.txt.cex = .75, node.txt.col = "grey", node.txt.adj = c(-0.1, -0.1)))
+  addTextLabels(PCA.auto$x[,1], PCA.auto$x[,3], phylo.classifiers$Figure, col.label=phylo.col)
+dev.off()
+
+
+pdf(file = "../2_Output/phylogeny.pdf", width=6, height=6)
+plot(trimmed.roxo, edge.width = 3, show.node.label=T)
+dev.off()
+```
+
+```{r Warpped shapes traditional}
+#findMeanSpec(threeD.coords.traditional)
+
+#mesh.pm=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/2Premaxilla/Pseudolithoxus_tigris-Premaxilla_L.ply")
+#mesh.pm$material$color = "light grey"
+
+#mesh.m=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/1Maxilla/Pseudolithoxus_tigris-Maxilla_L.ply")
+#mesh.m$material$color = "light grey"
+
+#mesh.lj=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/3LowerJaw/Pseudolithoxus_tigris-LowerJaw_L.ply")
+#mesh.lj$material$color = "light grey"
+
+# Premax = 1:6, Max = 7:30, LJ = 31:44
+# c(rep(1,6), rep(2,24), rep(3,14)), asp = 1)
+#med.shape=mshape(threeD.coords.traditional)
+#med.pm=med.shape[1:6,]
+#med.m=med.shape[7:30,]
+#med.lj=med.shape[31:44,]
+
+#med.mesh.pm=warpRefMesh(mesh = mesh.pm, mesh.coord = threeD.coords.auto[1:6,,"Pseudolithoxus_tigris"], med.pm)
+#med.mesh.m=warpRefMesh(mesh = mesh.m, mesh.coord = threeD.coords.auto[7:30,,"Pseudolithoxus_tigris"], med.m)
+#med.mesh.lj=warpRefMesh(mesh = mesh.lj, mesh.coord = threeD.coords.auto[31:44,,"Pseudolithoxus_tigris"], med.lj)
+
+#Premaxilla warp
+#PC1max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.traditional$shapes$shapes.comp1$max[1:6,])
+#PC1min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.traditional$shapes$shapes.comp1$min[1:6,])
+
+#PC2max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.traditional$shapes$shapes.comp2$max[1:6,])
+#PC2min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.traditional$shapes$shapes.comp2$min[1:6,])
+
+#plot3d(PC1min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/New/Comb.Trad.PM.PC1min.2.pdf", fmt="pdf")
+
+# Maxilla warps
+#PC1max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.traditional$shapes$shapes.comp1$max[7:30,])
+#PC1min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.traditional$shapes$shapes.comp1$min[7:30,])
+
+#PC2max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.traditional$shapes$shapes.comp2$max[7:30,])
+#PC2min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.traditional$shapes$shapes.comp2$min[7:30,])
+
+#plot3d(PC1min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/New/Comb.Trad.M.PC1min.2.pdf", fmt="pdf")
+
+#LowerJaw warps
+#PC1max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.traditional$shapes$shapes.comp1$max[31:44,])
+#PC1min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.traditional$shapes$shapes.comp1$min[31:44,])
+
+#PC2max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.traditional$shapes$shapes.comp2$max[31:44,])
+#PC2min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.traditional$shapes$shapes.comp2$min[31:44,])
+
+#plot3d(PC1min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/New/Comb.Trad.LJ.PC1min.2.pdf", fmt="pdf")
+```
+
+```{r Warpped shapes auto}
+#findMeanSpec(threeD.coords.auto)
+
+#mesh.pm=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/2Premaxilla/Hypoptopoma_spectabile-Premaxilla_L.ply")
+#mesh.pm$material$color = "light grey"
+
+#mesh.m=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/1Maxilla/Hypoptopoma_spectabile-Maxilla_L.ply")
+#mesh.m$material$color = "light grey"
+
+#mesh.lj=read.ply("~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/0_Raw Data/1_AutoGM/3LowerJaw/Hypoptopoma_spectabile-LowerJaw_L.ply")
+#mesh.lj$material$color = "light grey"
+
+# Premax = 1:200, Max = 201:300, LJ = 301:600
+#med.shape=mshape(threeD.coords.auto)
+#med.pm=med.shape[1:200,]
+#med.m=med.shape[201:300,]
+#med.lj=med.shape[301:600,]
+
+#med.mesh.pm=warpRefMesh(mesh = mesh.pm, mesh.coord = threeD.coords.auto[1:200,,"Hypoptopoma_spectabile"], med.pm)
+#med.mesh.m=warpRefMesh(mesh = mesh.m, mesh.coord = threeD.coords.auto[201:300,,"Hypoptopoma_spectabile"], med.m)
+#med.mesh.lj=warpRefMesh(mesh = mesh.lj, mesh.coord = threeD.coords.auto[301:600,,"Hypoptopoma_spectabile"], med.lj)
+
+#Premaxilla warp
+#PC1max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp1$max[1:200,])
+#PC1min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp1$min[1:200,])
+
+#PC2max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp2$max[1:200,])
+#PC2min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp2$min[1:200,])
+
+#PC3max.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp3$max[1:200,])
+#PC3min.pm=warpRefMesh(mesh = med.mesh.pm, med.pm, PCA.auto$shapes$shapes.comp3$min[1:200,])
+
+#plot3d(PC1min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC3min.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC3max.pm, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/Comb.Auto.PM.PC3max.pdf", fmt="pdf")
+
+# Maxilla warps
+#PC1max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp1$max[201:300,])
+#PC1min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp1$min[201:300,])
+
+#PC2max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp2$max[201:300,])
+#PC2min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp2$min[201:300,])
+
+#PC3max.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp3$max[201:300,])
+#PC3min.m=warpRefMesh(mesh = med.mesh.m, med.m, PCA.auto$shapes$shapes.comp3$min[201:300,])
+
+#plot3d(PC1min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC3min.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC3max.m, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/Comb.Auto.M.PC1min.2.pdf", fmt="pdf")
+
+#LowerJaw warps
+#PC1max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp1$max[301:600,])
+#PC1min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp1$min[301:600,])
+
+#PC2max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp2$max[301:600,])
+#PC2min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp2$min[301:600,])
+
+#PC3max.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp3$max[301:600,])
+#PC3min.lj=warpRefMesh(mesh = med.mesh.lj, med.lj, PCA.auto$shapes$shapes.comp3$min[301:600,])
+
+#plot3d(PC1min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC1max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC2min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC2max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#plot3d(PC3min.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+#plot3d(PC3max.lj, xlab = NULL, ylab = NULL, zlab = NULL, box = F, axes = F)
+
+#rgl.postscript("../2_Output/Comb.Auto.LJ.PC1min.2.pdf", fmt="pdf")
+```
+
+```{r Stats}
+array.coords.trad=as.matrix(coords.traditional)
+array.coords.auto=as.matrix(coords.auto)
+
+## Broken Stick ##
+#morphospace
+    lambda=PCAcomb.traditional$sdev^2 #2
+    bsDimension(lambda)
+    
+    lambda=PCAcomb.auto$sdev^2 #3
+    bsDimension(lambda)
+
+#phylomorphospace
+    lambda=PCA.traditional$sdev^2 #1
+    bsDimension(lambda)
+    
+    lambda=PCA.auto$sdev^2 #3
+    bsDimension(lambda)
+
+
+## PGLS ##
+fit.trad=lm(array.coords.trad~phylo.classifiers$Diet.Primary)#+phylo.classifiers$Substrate+phylo.classifiers$Flow+phylo.classifiers$Substrate*phylo.classifiers$Flow)
+lm.trad=procD.pgls(fit.trad, phy = trimmed.roxo, SS.type = "III")
+PGLS.Traditional=summary(lm.trad)
+    write.csv(PGLS.Traditional$table, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/PGLS.Traditional.csv")
+
+fit.auto=lm(array.coords.auto~phylo.classifiers$Diet.Primary)#+phylo.classifiers$Substrate+phylo.classifiers$Flow+phylo.classifiers$Substrate*phylo.classifiers$Flow)
+lm.auto=procD.pgls(fit.auto, phy = trimmed.roxo, SS.type = "III")
+PCGL.Auto=summary(lm.auto)
+    write.csv(PCGL.Auto$table, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/PCGL.Auto.csv")
+
+## Phylogenetic Signal ##
+PACA.traditional=gm.prcomp(threeD.coords.traditional, phy=trimmed.roxo,align.to.phy=T)
+PACA.auto=gm.prcomp(threeD.coords.auto, phy=trimmed.roxo,align.to.phy=T)
+
+physignal(array.coords.trad, phy = trimmed.roxo) #whole shape
+physignal(PACA.traditional$x[,1], phy = trimmed.roxo) #PC1
+
+physignal(array.coords.auto, phy = trimmed.roxo) #whole shape
+physignal(PACA.auto$x[,1:3], phy = trimmed.roxo) #PC1-PC3 (significant axes)
+
+#tradphysig=gm.prcomp(threeD.coords.traditional, phy=trimmed.roxo,align.to.phy=T)
+#autophysig=gm.prcomp(threeD.coords.auto, phy=trimmed.roxo,align.to.phy=T)
+
+#physignal(tradphysig$x[,1], phy = trimmed.roxo)
+#physignal(tradphysig$x[,2], phy = trimmed.roxo)
+
+#physignal(autophysig$x[,1], phy = trimmed.roxo)
+#physignal(autophysig$x[,2], phy = trimmed.roxo)
+
+## PLS ##
+#morphospace
+PLS = two.b.pls(comb.auto$coords, comb.traditional$coords)
+summary(PLS)
+
+pdf(file = "../2_Output/PLS-combo.morpho.pdf", width=4, height=4)
+plot(PLS, pch=21, cex=1.2, bg=auto.col, label = phylo.classifiers$Figure, cex.lab= .75, cex.axis = .75, xlim=c(-0.3,0.25), ylim=c(-0.4,0.4))
+dev.off()
+
+#phylomorphospace
+PLS.phylo= two.b.pls(threeD.coords.auto, threeD.coords.traditional)
+summary(PLS.phylo)
+
+pdf(file = "../2_Output/PLS-combo.pdf", width=4, height=4)
+plot(PLS.phylo, pch=21, cex=1.2, bg=phylo.col, label = phylo.classifiers$Figure, cex.lab= .75, cex.axis = .75, xlim=c(-0.25,0.4), ylim=c(-0.3,0.4))
+dev.off()
+```
+
+```{r mvMorph}
+lambda=PCA.auto$sdev^2
+sig_axes = bsDimension(lambda)
+PCA_sig <- PCA.auto$x[trimmed.roxo$tip.label, 1:sig_axes]
+
+fit_1 <- mvBM(trimmed.roxo, PCA_sig, model = "BM1")
+fit_2 <- mvOU(trimmed.roxo, PCA_sig, model = "OU1")
+
+fit_1$AICc; fit_2$AICc
+```
+
+```{r Evolutionary Rate - PCA}
+PCA.auto=gm.prcomp(threeD.coords.auto, phy=trimmed.roxo,align.to.phy=F)
+
+lambda=PCA.auto$sdev^2
+bsDimension(lambda) #3 axes
+
+lnShape=PCA.auto$x[,1]
+fit.shape=multirateBM(trimmed.roxo, lnShape, n.iter = 3)
+fit.shape
+plot(fit.shape)
+write.csv(fit.shape$sig2, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/EvoRate.PC1.csv")
+
+lnShape2=PCA.auto$x[,2]
+fit.shape2=multirateBM(trimmed.roxo, lnShape2, n.iter = 3)
+fit.shape2
+plot(fit.shape2)
+write.csv(fit.shape2$sig2, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/EvoRate.PC2.csv")
+
+lnShape3=PCA.auto$x[,3]
+fit.shape3=multirateBM(trimmed.roxo, lnShape3, n.iter = 3)
+fit.shape3
+plot(fit.shape3)
+write.csv(fit.shape3$sig2, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/EvoRate.PC3.csv")
+```
+
+```{r Evolutionary Rate - PACA}
+PACA.auto=gm.prcomp(threeD.coords.auto, phy=trimmed.roxo,align.to.phy=T)
+
+lambda=PACA.auto$sdev^2
+bsDimension(lambda) #2 axes
+
+lnShape4=PACA.auto$x[,1]
+fit.shape4=multirateBM(trimmed.roxo, lnShape4, n.iter = 3)
+fit.shape4
+plot(fit.shape4)
+write.csv(fit.shape4$sig2, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/EvoRate.PACA.PC1.csv")
+
+lnShape5=PACA.auto$x[,2]
+fit.shape5=multirateBM(trimmed.roxo, lnShape5, n.iter = 3)
+fit.shape5
+plot(fit.shape5)
+write.csv(fit.shape5$sig2, file = "~/Desktop/Research Projects/Dis_Ch3_Traditional vs. Auto/3_Figures and Tables/0_Tables Raw/EvoRate.PACAPC2.csv")
+```
+
+
+```{r Ancestral States}
+diet.type=setNames(phylo.classifiers$Diet.Primary, rownames(phylo.classifiers))
+diet.type
+
+colorpal=colorRampPalette(c("#3632ff","white","#ff2300"))
+
+cols=colorpal(3)
+cols=c("black",cols)
+names(cols)=levels(phylo.classifiers$Diet.Primary)
+cols=cols[match(phylo.classifiers$Diet.Primary, names(cols))]
+
+# Models
+fitER<-ace(diet.type,trimmed.roxo,model="ER",type="discrete")
+fitER
+
+mtrees<-make.simmap(trimmed.roxo,diet.type,model="ER",nsim=1000)
+pd=summary(mtrees)
+
+plot(sample(mtrees,1)[[1]],cols ,fsize=0.6,ftype="i", ylim=c(-2,Ntip(trimmed.roxo)), outline=T)
+nodelabels(pie=pd$ace,piecol=c("#3632ff","#ff38df","#ff2300"),cex=0.5)
+add.simmap.legend(colors=c("#3632ff","white","#ff2300"),prompt=FALSE,x=10,y=0, vertical=FALSE)
+```
+
+```{r Evolutionary Rate Figures}
+col.names=unique(cols)
+names(col.names)=c("herbivore","omnivore","xylophagy")
+
+evorate.plot=plot(fit.shape)
+evorate.plot=setMap(evorate.plot, colors=colorpal(100))
+#plot(evorate.plot, ftype="i", fsize=0.8, outline=TRUE)
+
+pdf(file = "../2_Output/EvolutionaryRatesPCA.pdf", width=7, height=5)
+
+layout(matrix(1:3,1,3),widths=c(0.39,0.20,0.35))
+plot(evorate.plot, fsize=0.6, digit=1, ftype="off", outline=T)
+plot.new()
+plot.window(xlim=c(-0.09,0.1),
+    ylim=get("last_plot.phylo",envir=.PlotPhyloEnv)$y.lim)
+par(cex=0.6)
+text(rep(0,length(fit.shape$tree$tip.label)),1:Ntip(fit.shape$tree),
+    gsub("_"," ",fit.shape$tree$tip.label),font=3)
+plot(sample(mtrees,1)[[1]], cols, direction="leftwards", fsize=0.6, ftype="off", lwd=3, outline=T)#, ylim=c(-2,Ntip(trimmed.roxo)))
+nodelabels(pie=pd$ace,piecol=c("#3632ff","white","#ff2300"),cex=1.5)
+add.simmap.legend(colors=col.names,prompt=FALSE,x=26,y=3, vertical=T)
+
+dev.off()
+
+
+evorate.plot2=plot(fit.shape2)
+evorate.plot2=setMap(evorate.plot2, colors=colorpal(100))
+
+evorate.plot3=plot(fit.shape3)
+evorate.plot3=setMap(evorate.plot3, colors=colorpal(100))
+
+pdf(file = "../2_Output/EvolutionaryRatesPC2PCA.pdf", width=5, height=5)
+plot(evorate.plot2, fsize=0.6, digit=1, outline=T)
+dev.off()
+
+pdf(file = "../2_Output/EvolutionaryRatesPC3PCA.pdf", width=5, height=5)
+plot(evorate.plot3, fsize=0.6, digit=1, outline=T)
+dev.off()
+
+evorate.plot4=plot(fit.shape4)
+evorate.plot4=setMap(evorate.plot4, colors=colorpal(100))
+
+evorate.plot5=plot(fit.shape5)
+evorate.plot5=setMap(evorate.plot5, colors=colorpal(100))
+
+pdf(file = "../2_Output/EvolutionaryRatesPC1PACA.pdf", width=5, height=5)
+plot(evorate.plot4, fsize=0.6, digit=1, outline=T)
+dev.off()
+
+pdf(file = "../2_Output/EvolutionaryRatesPC2PACA.pdf", width=5, height=5)
+plot(evorate.plot5, fsize=0.6, digit=1, outline=T)
+dev.off()
+
+
+pdf(file = "../2_Output/EvolutionaryRatesPACA.pdf", width=7, height=5)
+layout(matrix(1:3,1,3),widths=c(0.39,0.20,0.35))
+plot(evorate.plot4, fsize=0.6, digit=1, ftype="off", outline=T)
+plot.new()
+plot.window(xlim=c(-0.09,0.1),
+    ylim=get("last_plot.phylo",envir=.PlotPhyloEnv)$y.lim)
+par(cex=0.6)
+text(rep(0,length(fit.shape$tree$tip.label)),1:Ntip(fit.shape$tree),
+    gsub("_"," ",fit.shape$tree$tip.label),font=3)
+plot(sample(mtrees,1)[[1]], cols, direction="leftwards", fsize=0.6, ftype="off", lwd=3, outline=T)#, ylim=c(-2,Ntip(trimmed.roxo)))
+nodelabels(pie=pd$ace,piecol=c("#3632ff","white","#ff2300"),cex=1.5)
+add.simmap.legend(colors=col.names,prompt=FALSE,x=26,y=3, vertical=T)
+
+dev.off()
+```

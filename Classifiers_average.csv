@@ -1,0 +1,30 @@
+Average,Subfamily,Tribe.Roxo,Tribe.Lujan,Figure,Color,In Roxo,In Lujan,Diet.Primary,Substrate,Flow
+Baryancistrus_xanthellus,Hypostominae,Hemiancistrus Clade,Ancistrini,B. xan,#004949,1,1,ominvore,hard,fast
+Chaetostoma_milesi,Hypostominae,Chaetostoma Clade,Ancistrini,C. mil,#004949,1,0,ominvore,hard,fast
+Cordylancistrus_torbesensis,Hypostominae,,Ancistrini,C. tor,#004949,0,1,herbivore,,fast
+Dekeyseria_pulchra,Hypostominae,,Ancistrini,D. pul,#004949,0,1,,,
+Dentectus_barbarmatus,Loricariinae,,Loricariini,D. bar,#009292,0,0,,,
+Farlowella_acus,Loricariinae,Farlowellina,Harttiini,F. acu,#009292,1,1,herbivore,soft,fast
+Gymnotocinclus_anosteos,Hypoptopomatinae,Corumbataia Clade,uncertain,G. ano,#ffb677,1,0,herbivore,wood,fast
+Harttia_loricariformis,Loricariinae,Harttiini,Harttiini,H. lor,#009292,1,1,herbivore,hard,fast
+Harttiella_longicauda,Loricariinae,,Harttiini,H. lon,#009292,0,0,,,
+Hirtella_carinata,Neoplecostominae,,,H. car,#ff6db6,0,0,,,
+Hisonotus_maculipinnis,Hypoptopomatinae,Hisonotini,Otothyrini,H. mac,#ffb677,1,1,herbivore,plants.wood,fast
+Hypancistrus_zebra,Hypostominae,Peckoltia Clade,Ancistrini,H. zeb,#004949,1,1,ominvore,hard,fast
+Hypoptopoma_spectabile,Hypoptopomatinae,Hypoptopomatini,Hypoptopomatini,H. spe,#ffb677,1,1,herbivore,plants.wood,slow
+Hypoptopoma_thoracatum,Hypoptopomatinae,,Hypoptopomatini,H. tho,#ffb677,1,0,herbivore,plants.wood,slow
+Lamontichthys_filamentosus,Loricariinae,Farlowellina,Harttiini,L. fil,#009292,1,1,herbivore,hard,fast
+Micracanthicus_vandragti,Hypostominae,Peckoltia Clade,Ancistrini,M. van,#004949,1,0,ominvore,hard,fast
+Microlepidogaster_perforatus,Hypoptopomatinae,Hisonotini,Otothyrini,M. per,#ffb677,1,1,herbivore,soft,med
+Neoplecostomus_microp,Neoplecostominae,Neoplecostomini,,N. mic,#ff6db6,1,1,herbivore,hard,fast
+Otocinclus_vittatus,Hypoptopomatinae,Otocinclus Clade,Hypoptopomatini,O. vit,#ffb677,1,1,herbivore,wood,slow
+Otothyris_lophophanes,Otothyrinae,,Otothyrini,O. lop,#ffb677,0,1,,,
+Oxyropsis_ephippia,Hypoptopomatinae,,Hypoptopomatini,O. eph,#ffb677,0,1,,,
+Oxyropsis_wrightiana,Hypoptopomatinae,,Hypoptopomatini,O. wri,#ffb677,0,0,,,
+Panaqolus,Hypostominae,Peckoltia Clade,Ancistrini,P. sp,#004949,1,1,wood,wood,med
+Panaque_nigrolineatus,Hypostominae,,Ancistrini,P. nig,#004949,1,1,wood,wood,med.fast
+Pareiorhaphis_cameroni,Neoplecostominae,Neoplecostomini,,P. cam,#ff6db6,1,1,herbivore,hard,fast
+Pareiorhina_rudolphi,Neoplecostominae,Neoplecostomini,,P. rud,#ff6db6,1,1,herbivore,hard,fast
+Parotocinclus_maculicauda,Hypoptopomatinae,Hisonotini,Otothyrini,P. mac,#ffb677,1,1,herbivore,soft,med.fast
+Pseudolithoxus_tigris,Hypostominae,Ancistrini,Ancistrini,P. tig,#004949,1,1,herbivore,hard,fast
+Rhadinoloricaria_macromystax,Loricariinae,,Loricariini,R. mac,#009292,0,0,,,
